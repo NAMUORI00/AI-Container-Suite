@@ -16,6 +16,9 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     libffi-dev \
     libgl1-mesa-glx \
     libglib2.0-0 \
+    fontconfig \
+    fonts-nanum* \
+    fonts-noto-cjk \
     && rm -rf /var/lib/apt/lists/*
 
 # Miniconda 설치 (최신 버전)
@@ -81,6 +84,34 @@ RUN . $CONDA_DIR/etc/profile.d/conda.sh && \
     conda activate pytorch_env && \
     pip install --no-cache-dir -r /tmp/requirements.txt && \
     pip install pycuda
+
+# 폰트 캐시 업데이트 및 한글 폰트 설정
+RUN fc-cache -fv && \
+    mkdir -p /tmp/matplotlib_config
+
+# Matplotlib 설정 파일 생성
+RUN echo "import matplotlib.pyplot as plt" > /tmp/matplotlib_config/matplotlibrc.py && \
+    echo "plt.rcParams['font.family'] = 'NanumGothic'" >> /tmp/matplotlib_config/matplotlibrc.py && \
+    echo "plt.rcParams['axes.unicode_minus'] = False" >> /tmp/matplotlib_config/matplotlibrc.py && \
+    mkdir -p /home/$USERNAME/.config/matplotlib && \
+    cp /tmp/matplotlib_config/matplotlibrc.py /home/$USERNAME/.config/matplotlib/ && \
+    chown -R $USERNAME:$USERNAME /home/$USERNAME/.config
+
+# 주피터 노트북에서 sudo 실행을 위한 추가 설정
+# 현대적인 방식으로 jupyter에서 sudo 명령어 사용 지원
+RUN . $CONDA_DIR/etc/profile.d/conda.sh && \
+    conda activate pytorch_env && \
+    pip install ipython ipykernel
+
+# sudo 설정: 패스워드 없이 sudo 명령어 실행 가능하도록 설정
+RUN echo "Defaults env_keep += \"PYTHONPATH PYTHONUSERBASE JUPYTER_PATH JUPYTER_DATA_DIR JUPYTER_RUNTIME_DIR JUPYTER_CONFIG_DIR\"" >> /etc/sudoers.d/jupyter && \
+    chmod 0440 /etc/sudoers.d/jupyter && \
+    echo 'Defaults    !requiretty' >> /etc/sudoers.d/jupyter
+
+# 노트북 내 !sudo 명령어 사용 설정 파일 생성
+RUN mkdir -p /home/$USERNAME/.jupyter && \
+    echo "c.TerminalInteractiveShell.extra_env = {'PYTHONPATH': ':'.join(sys.path)}" >> /home/$USERNAME/.jupyter/jupyter_config.py && \
+    chown -R $USERNAME:$USERNAME /home/$USERNAME/.jupyter
 
 # 기본 사용자 전환
 USER $USERNAME
