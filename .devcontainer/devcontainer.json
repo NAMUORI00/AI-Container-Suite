@@ -1,7 +1,7 @@
 {
-    "name": "PyTorch CUDA Development",
+    "name": "PyTorch CUDA 12.1 Development",
     "build": {
-        "dockerfile": "Dockerfile",
+        "dockerfile": "${localWorkspaceFolder}/.devcontainer/${localEnv:CUDA_VERSION:cuda-12.1}/Dockerfile",
         "context": ".."
     },
     "runArgs": [
@@ -13,25 +13,16 @@
                 "ms-python.python",
                 "ms-python.vscode-pylance",
                 "ms-toolsai.jupyter",
-                "ms-toolsai.jupyter-keymap",
-                "ms-toolsai.jupyter-renderers",
                 "ms-azuretools.vscode-docker",
-                "donjayamanne.python-environment-manager",
-                "njpwerner.autodocstring"
+                "donjayamanne.python-environment-manager"
             ],
             "settings": {
-                "python.defaultInterpreterPath": "/opt/conda/envs/pytorch_env/bin/python",
-                "python.linting.enabled": true,
-                "python.formatting.provider": "black",
-                "editor.formatOnSave": true,
-                "jupyter.notebookFileRoot": "/workspace"
+                "python.defaultInterpreterPath": "/opt/conda/envs/pytorch_env/bin/python"
             }
         }
     },
     "remoteUser": "vscode",
     "remoteEnv": {
         "PATH": "${containerEnv:PATH}:/opt/conda/envs/pytorch_env/bin"
-    },
-    "workspaceFolder": "/workspace",
-    "workspaceMount": "source=${localWorkspaceFolder},target=/workspace,type=bind,consistency=cached"
+    }
 }
